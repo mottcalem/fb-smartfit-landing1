@@ -1,0 +1,19 @@
+/* Header and dealership application */
+.site-header{background:rgba(247,249,247,.94);top:0;min-height:82px;border-bottom:1px solid rgba(28,53,48,.1)}
+.site-header nav{font-size:14px;font-weight:600;gap:clamp(20px,3vw,42px)}
+.header-actions{gap:14px}.dealer-open{background:#007e76;color:#fff;border-radius:30px;padding:11px 19px;font-size:13px;font-weight:600;white-space:nowrap}.dealer-open:hover,.dealer-submit:hover{background:#006b65}
+#dealer-dialog{width:min(690px,calc(100% - 32px));max-width:none;max-height:calc(100dvh - 32px);padding:0;border:1px solid #dce5e5;border-radius:20px;background:#fff;color:#162f3a;box-shadow:0 24px 80px #0003;overflow:auto}
+#dealer-dialog::backdrop{background:rgba(0,0,0,.78)}
+.dealer-inner{position:relative;padding:34px}.dealer-close{position:absolute;right:25px;top:20px;background:transparent;color:#61717a;font-size:30px;line-height:1}.dealer-icon{display:grid;place-items:center;width:58px;height:58px;background:#e1f5f1;color:#00b5a5;border-radius:50%;margin-bottom:14px}.dealer-icon svg{width:27px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+#dealer-dialog h2{font-family:var(--sans);font-size:clamp(26px,3vw,34px);font-weight:600;letter-spacing:-.04em;line-height:1.2;color:#092e41}#dealer-description{font-size:15px;line-height:1.55;color:#657782;margin:10px 0 24px}
+#dealer-form label,#dealer-form legend{font-size:14px;line-height:1.4;font-weight:600;color:#203644}#dealer-form input:not([type=radio]),#dealer-form textarea{display:block;width:100%;border:1px solid #d3dfe2;border-radius:12px;background:#fff;color:#203644;padding:11px 13px;margin-top:5px;box-shadow:0 2px 5px #0000000d;outline:none}#dealer-form input:focus,#dealer-form textarea:focus{border-color:#00b5a5;box-shadow:0 0 0 2px #00b5a526}#dealer-form textarea{resize:vertical;font:inherit;min-height:85px}.dealer-grid{display:grid;grid-template-columns:1fr 1fr;gap:17px 20px}.dealer-types{border:0;padding:0;margin:20px 0}.dealer-types legend{margin-bottom:8px}.dealer-types>div{display:flex;flex-wrap:wrap;gap:8px}.dealer-types label{cursor:pointer}.dealer-types input{position:absolute;opacity:0}.dealer-types span{display:block;padding:7px 13px;border:1px solid #d3dfe2;border-radius:30px;font-weight:400}.dealer-types input:checked+span{background:#e1f5f1;border-color:#00a99a;color:#006f65}.dealer-types input:focus-visible+span{outline:3px solid #a28530;outline-offset:3px}.dealer-note{display:block}.dealer-submit{width:100%;margin-top:20px;padding:14px;background:#00b5a5;color:white;border-radius:12px;font-size:15px;font-weight:600}.dealer-status{margin-top:12px;color:#735b2c;font-size:13px}
+@media(max-width:700px){.site-header{min-height:68px;padding-top:10px;padding-bottom:10px}.header-actions{gap:8px}.dealer-open{font-size:11px;padding:9px 12px}.header-cta{display:none}.hero-opening{top:13%}.dealer-inner{padding:24px}.dealer-grid{grid-template-columns:1fr;gap:13px}#dealer-dialog h2{padding-right:20px}.dealer-types{margin:16px 0}}
+/* Keep the opening product image clear of the header. */
+@media(min-width:701px){.hero-opening{top:calc(7% + 45px)}}
+@media(max-width:700px){.hero-opening{top:calc(13% + 20px)}}
+/* Reserve space below the header without overlapping the proof text. */
+@media(min-width:701px){.hero-opening{height:calc(34% - 45px)}}
+@media(min-width:701px) and (max-height:849px){.hero-opening{height:calc(27% - 45px)}}
+@media(max-width:700px){.hero-opening{height:calc(26% - 20px)}}
+@media(max-width:700px) and (max-height:740px){.hero-opening{height:calc(21% - 20px)}}
+@media(max-width:700px) and (max-height:650px){.hero-opening{height:calc(19% - 20px)}}
