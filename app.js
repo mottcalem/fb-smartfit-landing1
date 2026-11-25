@@ -9,6 +9,18 @@ const comfortVariants={XS:'68251290534184',S:'68251290566952',M:'68251290599720'
 const energyVariants={XS:'68251415839016',S:'68251415871784',M:'68251415904552',L:'68251415937320',XL:'68251415970088',XXL:'68251416002856'};
 const supportVariants={XS:'68251427111208',S:'68251427143976',M:'68251427176744',L:'68251427209512',XL:'68251427242280',XXL:'68251427275048'};
 const shopifyVariants={comfort:comfortVariants,energy:energyVariants,support:supportVariants};
+const productPrice = 4900;
+const tracking = window.FBLP;
+function trackingItem(model, size, qty = 1) {
+  return {
+    variantId: shopifyVariants[model][size],
+    name: `SmartFit ${models[model].name}`,
+    model,
+    size,
+    price: productPrice,
+    qty
+  };
+}
 const $=id=>document.getElementById(id);
 const validModel=value=>Object.hasOwn(models,value);
 const requested=new URLSearchParams(location.search).get('model');
@@ -37,6 +49,7 @@ function feature(model,updateURL=false){
   document.querySelectorAll('[data-feature]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.feature===model)));
   setView(currentView);
   document.title=`SmartFit ${data.name} — FootBalance`;
+  tracking?.viewItem(trackingItem(model));
   document.dispatchEvent(new CustomEvent('smartfit:model',{detail:{model}}));
   if(updateURL){const url=new URL(location.href);url.searchParams.set('model',model);history.replaceState(null,'',url);announce(`SmartFit ${data.name} gösteriliyor.`);}
 }
@@ -60,14 +73,21 @@ function renderPurchase(){
   $('add-cart').textContent=selectedSize?'Sepete ekle · 4.900 TL':'Önce numaranı seç';
   $('purchase-note').textContent='Ödeme için sepetin Shopify mağazamızda yeni sekmede açılır.';
 }
-function buy(model){purchaseModel=validModel(model)?model:featured;selectedSize='';renderPurchase();openDialog('purchase-dialog');}
+function buy(model){
+  purchaseModel=validModel(model)?model:featured;
+  if (purchaseModel !== featured) tracking?.viewItem(trackingItem(purchaseModel));
+  selectedSize='';renderPurchase();openDialog('purchase-dialog');
+}
 function renderCart(){
   const count=cart.reduce((sum,item)=>sum+item.quantity,0);
   $('cart-count').textContent=count;$('open-cart').setAttribute('aria-label',`Sepeti aç, ${count} ürün`);
   $('cart-summary').hidden=!count;
   $('cart-items').innerHTML=count?cart.map((item,index)=>`<article class="cart-line"><img src="${imagePath(item.model,'pair')}" alt="SmartFit ${models[item.model].name}"><div><h3>SmartFit ${models[item.model].name}</h3><p>${item.size} (${sizes.find(s=>s[0]===item.size)[1]}) · ${item.quantity} adet</p><p>${money(item.quantity*4900)}</p></div><button data-remove="${index}" aria-label="${models[item.model].name} ${item.size} sepetten kaldır">Kaldır</button></article>`).join(''):'<p class="empty-cart">Sepetin henüz boş. Modelleri keşfedip sana uygun olanı seçebilirsin.</p>';
   $('cart-total').textContent=money(count*4900);
-  $('checkout-link').href=count?`https://shop.footbalance.com.tr/cart/${cart.map(item=>`${shopifyVariants[item.model][item.size]}:${item.quantity}`).join(',')}?storefront=true`:'#';
+  const items = cart.map(({ model, size, quantity }) => trackingItem(model, size, quantity));
+  $('checkout-link').href = count
+    ? tracking?.checkoutUrl(items) ?? `https://shop.footbalance.com.tr/cart/${items.map(({ variantId, qty }) => `${variantId}:${qty}`).join(',')}?storefront=true`
+    : '#';
 }
 function renderQuiz(){
   if(quizStep===1){$('quiz-content').innerHTML='<p class="quiz-progress">1 / 2 · Kullanımın</p><h2 id="quiz-title">En çok nerede kullanacaksın?</h2><div class="quiz-choices"><button data-use="daily">Günlük yaşamda<small>Günlük yürüyüş ve ayakta geçen zaman</small></button><button data-use="active">Spor ve egzersizde<small>Koşu, fitness ve hareketli aktiviteler</small></button><button data-use="mixed">İkisinde de / emin değilim<small>Tek bir kullanım alanım yok</small></button></div><p class="modal-note">Bu yardımcı tıbbi değerlendirme yapmaz.</p>';}
@@ -76,9 +96,11 @@ function renderQuiz(){
 function quizResult(feel){
   const uncertain=feel==='unsure';
   if(uncertain&&quizUse==='mixed'){
+    tracking?.step('model_finder_complete');
     $('quiz-content').innerHTML='<p class="quiz-progress">Seçeneklerini birlikte karşılaştır</p><h2 id="quiz-title">Tek bir model önermek için erken.</h2><p>Kullanımın ve his tercihin henüz net değil. Konfor, Energy ve Destek’in yastıklama / destek farklarını yan yana inceleyebilirsin.</p><button class="button primary full" data-compare>Modelleri karşılaştır →</button><button class="text-button" data-restart>Baştan başla</button>';return;
   }
   const model=feel==='soft'?'comfort':feel==='balanced'?'energy':feel==='firm'?'support':quizUse==='active'?'energy':'comfort';
+  tracking?.step('model_finder_complete', { model });
   const reason=feel==='soft'?'Yumuşak basış hissini önceliklendirdiğin için yüksek yastıklamalı Konfor’u inceleyebilirsin.':feel==='balanced'?'Yastıklama ve desteği birlikte istediğin için dengeli Energy’yi inceleyebilirsin.':feel==='firm'?'Belirgin kavis desteğini tercih ettiğin için Destek modelini inceleyebilirsin.':quizUse==='active'?'His tercihin net değil. Aktif kullanım için tasarlanan Energy, karşılaştırmaya başlamak için bir seçenek.':'His tercihin net değil. Günlük kullanıma yönelik Konfor, karşılaştırmaya başlamak için bir seçenek.';
   const alternative=model==='comfort'?'Daha dengeli yastıklama ve destek ararsan Energy’ye de bak.':model==='energy'?'Yumuşaklık önceliğin olursa Konfor’a; belirgin destek ararsan Destek’e de bak.':'Daha yumuşak bir basış hissi ararsan Konfor’a da bak.';
   $('quiz-content').innerHTML=`<p class="quiz-progress">${uncertain?'İnceleyebileceğin seçenek':'Tercihine göre önerimiz'}</p><img class="quiz-result-image" src="${imagePath(model,'pair')}" alt="SmartFit ${models[model].name}"><h2 id="quiz-title">SmartFit ${models[model].name}</h2><p class="quiz-result-reason">${reason}</p><p>${alternative}</p><button class="button primary full" data-buy="${model}">Numaramı seç · 4.900 TL</button><div class="quiz-secondary"><button class="text-button" data-compare>Modelleri karşılaştır</button><button class="text-button" data-restart>Baştan başla</button></div><p class="modal-note">Öneri kullanım tercihine dayanır; uygunluk garantisi değildir.</p>`;
@@ -89,7 +111,11 @@ document.addEventListener('click',event=>{
   if(button.dataset.feature){feature(button.dataset.feature,true);return;}
   if(button.dataset.view){setView(button.dataset.view);return;}
   if(button.dataset.buy){buy(button.dataset.buy);return;}
-  if(button.dataset.selectModel){purchaseModel=button.dataset.selectModel;renderPurchase();return;}
+  if(button.dataset.selectModel){
+    const model = button.dataset.selectModel;
+    if (model !== purchaseModel) tracking?.viewItem(trackingItem(model, selectedSize));
+    purchaseModel=model;renderPurchase();return;
+  }
   if(button.hasAttribute('data-quiz')){quizStep=1;quizUse='';renderQuiz();openDialog('quiz-dialog');return;}
   if(button.dataset.use){quizUse=button.dataset.use;quizStep=2;renderQuiz();$('quiz-title').setAttribute('tabindex','-1');$('quiz-title').focus();return;}
   if(button.dataset.feel){quizResult(button.dataset.feel);$('quiz-title').setAttribute('tabindex','-1');$('quiz-title').focus();return;}
@@ -98,7 +124,25 @@ document.addEventListener('click',event=>{
   if(button.dataset.remove!==undefined){cart.splice(Number(button.dataset.remove),1);renderCart();announce('Ürün sepetten kaldırıldı.');return;}
 });
 $('size-grid').addEventListener('change',event=>{if(event.target.name==='size'){selectedSize=event.target.value;$('add-cart').disabled=false;$('add-cart').textContent='Sepete ekle · 4.900 TL';}});
-$('add-cart').addEventListener('click',()=>{if(!sizes.some(size=>size[0]===selectedSize)||!shopifyVariants[purchaseModel]?.[selectedSize])return;const existing=cart.find(item=>item.model===purchaseModel&&item.size===selectedSize);if(existing)existing.quantity+=1;else cart.push({model:purchaseModel,size:selectedSize,quantity:1});renderCart();openDialog('cart-dialog');announce(`SmartFit ${models[purchaseModel].name} sepete eklendi.`);});
+$('add-cart').addEventListener('click',()=>{
+  if(!sizes.some(size=>size[0]===selectedSize)||!shopifyVariants[purchaseModel]?.[selectedSize])return;
+  const existing=cart.find(item=>item.model===purchaseModel&&item.size===selectedSize);
+  if(existing)existing.quantity+=1;else cart.push({model:purchaseModel,size:selectedSize,quantity:1});
+  tracking?.addToCart(trackingItem(purchaseModel, selectedSize));
+  renderCart();openDialog('cart-dialog');announce(`SmartFit ${models[purchaseModel].name} sepete eklendi.`);
+});
+const trackCheckout = () => {
+  if (cart.length) tracking?.beginCheckout(cart.map(({ model, size, quantity }) => trackingItem(model, size, quantity)));
+};
+$('checkout-link').addEventListener('click', trackCheckout);
+$('checkout-link').addEventListener('auxclick', event => {
+  if (event.button === 1) trackCheckout();
+});
+document.querySelectorAll('.faq-list details').forEach((question, index) => {
+  question.addEventListener('toggle', () => {
+    if (question.open) tracking?.step('faq_open', { question_number: index + 1 });
+  });
+});
 $('open-cart').addEventListener('click',()=>{renderCart();openDialog('cart-dialog');});
 $('return-info').addEventListener('click',()=>openDialog('info-dialog'));
 document.querySelectorAll('dialog').forEach(dialog=>dialog.addEventListener('click',event=>{if(event.target!==dialog)return;const rect=dialog.getBoundingClientRect();if(event.clientX<rect.left||event.clientX>rect.right||event.clientY<rect.top||event.clientY>rect.bottom)dialog.close();}));
