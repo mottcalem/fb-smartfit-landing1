@@ -1,11 +1,9 @@
 'use strict';
 (() => {
   const dialog = document.getElementById('dealer-dialog');
-  const open = document.getElementById('dealer-open');
   const form = document.getElementById('dealer-form');
   const status = form.querySelector('.dealer-status');
   const submit = form.querySelector('.dealer-submit');
-  open.addEventListener('click', () => { dialog.showModal(); });
   dialog.querySelector('.dealer-close').addEventListener('click', () => dialog.close());
   dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close(); });
   form.addEventListener('submit', async event => {

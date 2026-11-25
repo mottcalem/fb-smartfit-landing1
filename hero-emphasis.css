@@ -47,3 +47,30 @@
 .header-cta{justify-content:center;gap:0}
 .text-button,.text-button:hover{gap:0;transition:color .2s ease,border-color .2s ease}
 .button.hero-secondary:hover{background:var(--n-paper);border-color:var(--cta-ink)}
+
+.shopping-offers {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 8px;
+  margin: 12px 0 0;
+}
+
+.shopping-offers > span {
+  padding: 5px 11px;
+  border-radius: 8px;
+  background: var(--cta-ink);
+  color: var(--cta-white);
+  font-size: clamp(14px, 2vw, 18px);
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.hero-copy .shopping-offers + .hero-actions {
+  margin-top: 8px;
+}
+
+#cart-summary .shopping-offers {
+  justify-content: flex-start;
+  margin-bottom: 12px;
+}
